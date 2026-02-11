@@ -37,6 +37,12 @@ def main() -> None:
     if vix is not None:
         vix = vix.loc[START_DATE:END_DATE]
 
+
+    print("RET:", ret.shape, ret.index.min(), ret.index.max())
+    print("FF :", ff.shape, ff.index.min(), ff.index.max())
+    print("IND:", ind.shape, ind.index.min(), ind.index.max())
+    print("VIX:", None if vix is None else (vix.shape, vix.index.min(), vix.index.max()))
+
     # Notes (GPT)
     # ret, ff are decimals already; ind is % (your std~1.56 confirms).
     # We do NOT convert in this script unless you want.

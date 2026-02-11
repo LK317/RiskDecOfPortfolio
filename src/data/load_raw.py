@@ -52,21 +52,28 @@ def load_ff_factors_csv(path: Path) -> pd.DataFrame:
 
 
 def load_industry_49_xlsx(path: Path) -> pd.DataFrame:
-    raw_x = pd.read_excel(path, header=None)
-    headers = raw_x.iloc[3].tolist()
-    headers[0] = "date"  
-    data = raw_x.iloc[4:].copy()
-    data.columns = _dedupe_columns(headers)
+    import numpy as np
+    import pandas as pd
 
-    data["date"] = pd.to_datetime(
-        data["date"].astype(str),
-        format="%Y%m%d",
-        errors="coerce",
-    )
-    data = data.dropna(subset=["date"]).set_index("date").sort_index()
-    data = data.apply(pd.to_numeric, errors="coerce")
-    data = data.replace(list(FF_MISSING), np.nan)
-    return data
+    ind = pd.read_excel(path)
+
+    first_col = ind.columns[0]
+    ind = ind.rename(columns={first_col: "date"})
+
+    d = ind["date"]
+
+    if np.issubdtype(d.dtype, np.datetime64):
+        ind["date"] = pd.to_datetime(d, errors="coerce")
+    else:
+        s = d.astype(str).str.replace(r"\.0$", "", regex=True).str.strip()
+        ind["date"] = pd.to_datetime(s, format="%Y%m%d", errors="coerce")
+
+    ind = ind.dropna(subset=["date"]).set_index("date").sort_index()
+
+    ind = ind.apply(pd.to_numeric, errors="coerce")
+    ind = ind.replace([-99.99, -999], np.nan)
+
+    return ind
 
 
 def load_vix_csv(path: Path) -> pd.DataFrame:
